@@ -20,7 +20,7 @@ struct StylesScreen: View {
 
             DemoCard("Mirrored", caption: ".mirrored", tint: DemoPalette.played) {
                 WaveformView(waveform: waveform, progress: $player.progress, style: .mirrored, played: DemoPalette.played, unplayed: DemoPalette.unplayed)
-                    .frame(height: 64)
+                    .frame(height: 56)
             }
 
             DemoCard("Bars", caption: ".bars", tint: DemoPalette.teal) {
@@ -31,12 +31,12 @@ struct StylesScreen: View {
                     played: DemoPalette.teal,
                     unplayed: DemoPalette.unplayed
                 )
-                .frame(height: 52)
+                .frame(height: 44)
             }
 
             DemoCard("Line", caption: ".line", tint: DemoPalette.violet) {
                 WaveformView(waveform: waveform, progress: $player.progress, style: .line, played: DemoPalette.violet, unplayed: DemoPalette.unplayed)
-                    .frame(height: 52)
+                    .frame(height: 44)
             }
 
             DemoCard("Thin mirrored", caption: "barWidth 1.5, spacing 1", tint: DemoPalette.yellow) {
@@ -47,7 +47,7 @@ struct StylesScreen: View {
                     played: DemoPalette.yellow,
                     unplayed: DemoPalette.unplayed
                 )
-                .frame(height: 44)
+                .frame(height: 36)
             }
 
             DemoCard("RMS and peak buckets", caption: "WaveformSampleMode") {
@@ -67,7 +67,7 @@ struct StylesScreen: View {
                 }
             }
 
-            Text("Every card is bound to the same WaveformPlayer: drag any of them to scrub.")
+            Text("All cards share one player: drag any to scrub.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 4)

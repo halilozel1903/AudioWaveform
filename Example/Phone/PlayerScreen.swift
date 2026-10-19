@@ -117,7 +117,7 @@ struct TrackListCard: View {
                                     .font(.caption.monospacedDigit())
                                     .foregroundStyle(.secondary)
                             }
-                            .frame(width: 128, alignment: .leading)
+                            .frame(width: 156, alignment: .leading)
                             if let url = track.url {
                                 AsyncWaveformView(
                                     url: url,
