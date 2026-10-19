@@ -1,0 +1,115 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  swift:
+    name: Swift tests (macOS)
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v5
+      - name: Toolchain
+        run: |
+          swift --version
+          xcodebuild -version
+      - name: Build
+        run: swift build
+      - name: Test
+        run: swift test
+
+  demo-audio:
+    name: Demo audio script
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Regenerate the demo audio and compare
+        run: |
+          python3 scripts/generate-demo-audio.py "$RUNNER_TEMP/demo-audio"
+          for file in Example/Shared/DemoAudio/*.caf; do
+            name=$(basename "$file")
+            fresh="$RUNNER_TEMP/demo-audio/$name"
+            test "$(wc -c < "$file")" = "$(wc -c < "$fresh")"
+            cmp -n 68 "$file" "$fresh"
+            echo "$name: same length and header as the committed file"
+          done
+
+  test:
+    name: Tests (${{ matrix.platform }})
+    runs-on: macos-26
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [iOS, watchOS]
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build & test on ${{ matrix.platform }} Simulator
+        run: bash scripts/test.sh ${{ matrix.platform }}
+
+  example:
+    name: Example apps
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Install watchOS platform if missing
+        run: |
+          if ! xcrun simctl list runtimes available | grep -q watchOS; then
+            xcodebuild -downloadPlatform watchOS
+          fi
+      - name: Generate project
+        working-directory: Example
+        run: xcodegen generate
+      - name: Build for watchOS Simulator
+        run: |
+          xcodebuild build \
+            -project Example/AudioWaveformDemo.xcodeproj \
+            -scheme WavesWatch \
+            -destination 'generic/platform=watchOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO
+      - name: Build for iOS Simulator
+        run: |
+          xcodebuild build \
+            -project Example/AudioWaveformDemo.xcodeproj \
+            -scheme WavesPhone \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO
+
+  screenshots:
+    name: README screenshots
+    if: github.event_name != 'pull_request'
+    needs: [swift, test, example, demo-audio]
+    runs-on: macos-26
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate project
+        working-directory: Example
+        run: xcodegen generate
+      - name: Capture screenshots (Apple Watch and iPhone)
+        run: >-
+          bash scripts/screenshots.sh AudioWaveformDemo
+          --watch WavesWatch io.github.halilozel1903.WavesWatch player
+          --iphone WavesPhone io.github.halilozel1903.WavesPhone player styles
+      - name: Commit screenshots
+        run: |
+          git config user.name "Halil Özel"
+          git config user.email "halilozel1903@gmail.com"
+          git add docs/screenshots
+          if git diff --cached --quiet; then
+            echo "Screenshots unchanged"
+          else
+            git commit -m "Update README screenshots [skip ci]"
+            git push
+          fi
