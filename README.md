@@ -31,7 +31,7 @@ WaveformView(waveform: waveform, progress: $player.progress, style: .mirrored, p
 
 ## Screenshots
 
-Captured by CI from the example app, *Waves*, on an iPhone and an Apple Watch simulator.
+Captured by CI from the example app, *Waves*, on an iPhone and an Apple Watch simulator. The tracks are **generated demo audio**: three short clips synthesized from sine waves by `scripts/generate-demo-audio.py` and bundled with the app, labeled as demo audio on screen. No recordings or music from anywhere else are used.
 
 | iPhone: player | iPhone: styles | Watch: player |
 | :---: | :---: | :---: |
